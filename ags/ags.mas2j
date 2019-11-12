@@ -1,0 +1,13 @@
+/* Jason Project */
+
+MAS ags {
+
+    infrastructure: Centralised
+
+    agents:
+        manager;
+
+        agent #15;
+
+}
+
