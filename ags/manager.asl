@@ -21,17 +21,16 @@
 		.send(N, achieve, initLeaf(I));
 	}.
 
-+!execute <-
-	.wait(1000);
-	.broadcast(achieve, step);
-	.wait(3000);
-	.print("---------------------");
-	.broadcast(achieve, step).
++!printResult(N) <-
+	.print(N).
 	
-+!sendBC <-
-	.wait(3000);
-	.print("---------------------");
-	.broadcast(achieve, sendUp).
-	
++!execute <-       
+	for(.range(I, 1, 20) ){
+		.wait(1000);
+		.broadcast(achieve, step)
+	}.
+	     
+
+
 
 

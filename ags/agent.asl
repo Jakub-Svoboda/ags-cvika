@@ -27,53 +27,73 @@
 	+iam(leaf);
 	+number(math.floor(R * 100));
 	.print("Generated: ", math.floor(R * 100)).
-
-//+!print_number: number(N) <- .print(N).
-
-@a +!step: parent(P) & number(N) & index(I) & (iam(node) | iam(root)) <-  
+	
+	
+@a +!step: index(I) & (iam(node) | iam(root)) <-  	//for all non leafs
 	.random(R);
-	.wait(R*100);
-	.concat("agent", P, X);
-	//.print("I am agent", I, " and Im sending up to ", X);
-	.send(X, achieve, save(N, I)).
-	
-@b +!step <- .wait(1).
-
-@c +!save(N, I): iam(node) | iam(root)<-
-	if(I==14 | I==12 | I==10 | I==8 | I==6 | I==4 | I==2 ){
-		+first(N);
-		//.print("Got first number ", N, " from agent", I);
-	} else {
-		+second(N);
-		//.print("Got 2nd number ", N, " from agent", I);
-	};
-	if(first(L) & second(R) & isempty){
-		//.print("GOT BOTH ", R, L);
-		-isempty;
-		!getMin(R, L)
-	}.
-
-@d +!getMin(R, L): index(I) <- 
-	//.print(math.min(R, L));
-	+number(math.min(R, L));
-	if(math.min(R, L) == L){
-		//.print("Left won, clearing ", I*2);
-		.concat("agent", I*2, Name);
-		.send(Name, achieve, clear(I*2))
+	.wait(R*1+I*10);
+	.concat("agent", I*2, X);
+	.concat("agent", I*2+1, X2);
+	if(iam(root) & number(N)){
+		.send("agent1", achieve, clear(I));
+		.send("manager", achieve, printResult(N));
 	}else{
-		//.print("Right won, clearing ", I*2+1);
-		.concat("agent", (I*2)+1, Name);
-		.send(Name, achieve, clear((I*2)+1))
-	};
-	if(iam(root)){
-		.print("RESULT ", math.min(R, L));
-		.send(Name, achieve, clear(I));
-		//.send(manager, achieve, sendBC)
-	}.                                                                                                                                                                                                                                            
+		.send(X, askOne, isempty, A);
+		//.print("My left child : ", X ," got ", A);
+		.send(X2, askOne, isempty, B);
+		//.print("My right child : ", X2 ," got ", B);
+		if(A>false & B>false){
+			//.print("both children empty, doin nothing");
+			.wait(1)
+		}else{			
+			if(isempty){
+				if(A==false & B>false){				//if only left is not empty
+					//.print("only my left child has number");
+					.send(X, askOne, number(N), number(MyNum));
+					+number(MyNum);
+					-isempty;
+					.send(X, achieve, clear(I*2));
+				}else{
+					if(A>false & B==false){					//if only right is not empty
+						//.print("only my right child has number");
+						.send(X2, askOne, number(N), number(MyNum));
+						+number(MyNum);
+						-isempty;
+						.send(X2, achieve, clear(I*2+1));
+					}else{
+						if(A==false & B==false){
+							.send(X, askOne, number(RE), number(LL));
+							.send(X2, askOne, number(RE2), number(RR));
+							+first(LL);
+							+second(RR);
+							+number(math.min(LL, RR));
+							-isempty;
+							//.print("Both got numbers: ", LL, " ", RR, " min is ", math.min(LL, RR));
+							if(math.min(RR, LL) == LL){
+								.send(X, achieve, clear(I*2));
+								-first(LL);
+								-second(RR)
+							}else{
+								.send(X2, achieve, clear((I*2)+1));
+								-first(LL);
+								-second(RR)
+							};
+						}else{
+							//.print("CONDITION ERROR ", A, B)
+						}
+					}
+				}
+			}else{
+				//.print("Im not empty, doin nothing")
+			}
+		}		
+	}.
 	
+	
+@b +!step <- .wait(1).                                                                                                                                                                                               
 
 @e +!clear(I): number(N)<-
-	.print("Clearing ", I);
+	//.print("Clearing ", I);
 	-number(N);
 	-first;
 	-second;
